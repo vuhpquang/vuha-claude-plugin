@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import type { ContextRow } from '../types'
-import { barCells, formatTokens } from '../hooks/register'
+import { barCells, formatDuration, formatTokens, levelColor, windowLabel } from '../hooks/format'
 
 const row = (name: string, tokens: number, kind: ContextRow['kind'] = 'used'): ContextRow => ({
   name,
@@ -15,6 +15,18 @@ test('formats tokens as /context does', async () => {
   expect(formatTokens(4200)).toBe('4.2k')
   expect(formatTokens(17000)).toBe('17k')
   expect(formatTokens(1_000_000)).toBe('1M')
+})
+
+test('formats the session time like the old status line', async () => {
+  expect(formatDuration(47_000)).toBe('0m 47s')
+  expect(formatDuration(21 * 60_000 + 47_000)).toBe('21m 47s')
+  expect(formatDuration(2 * 3_600_000 + 5 * 60_000)).toBe('2h 05m')
+})
+
+test('names rate-limit windows and colours levels', async () => {
+  expect(windowLabel({ kind: 'five_hour', percentUsed: 10.4 })).toBe('5h 10%')
+  expect(windowLabel({ kind: 'spend_limit', percentUsed: 3 })).toBe('spend_limit 3%')
+  expect([levelColor(9), levelColor(50), levelColor(80)]).toEqual(['success', 'warning', 'error'])
 })
 
 test('bar cells fill the width exactly', async () => {

@@ -1,37 +1,26 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { ContextRow, ContextSnapshot } from '../types'
+import type { ContextRow } from '../types'
+import { barCells, formatDuration, formatTokens, levelColor, windowLabel } from './format'
 
+const TICK_MS = 30 * 1000
 const snapshot = atom({ plugin: 'context-bar', key: 'snapshot' } as const, null)
 const isShown = atom({ plugin: 'context-bar', key: 'isShown' } as const, true)
 
-export const formatTokens = (n: number) =>
-  n >= 1_000_000
-    ? `${+(n / 1_000_000).toFixed(1)}M`
-    : n >= 1000
-      ? `${+(n / 1000).toFixed(1)}k`
-      : `${n}`
+const currentBranch = async ($: EngineInterface) => {
+  const { exitCode, stdout } = await $.process.run(['git', 'branch', '--show-current'], { timeoutMs: 5000 })
 
-// One cell per category share of `width`; a non-empty category always gets a cell.
-export const barCells = (rows: ContextRow[], max: number, width: number) => {
-  const cells = rows.map(row => ({
-    row,
-    count: row.tokens > 0 ? Math.max(1, Math.round((row.tokens / max) * width)) : 0,
-  }))
-  const free = cells.find(cell => cell.row.kind === 'free')
-  const overflow = cells.reduce((sum, cell) => sum + cell.count, 0) - width
-
-  if (free && overflow !== 0) {
-    free.count = Math.max(0, free.count - overflow)
-  }
-
-  return cells.filter(cell => cell.count > 0)
+  return exitCode === 0 ? stdout.trim() : ''
 }
 
 const refresh = async ($: EngineInterface) => {
-  const { context } = await $.session.usage({ breakdown: 'summary' })
-  const breakdown = context.breakdown
+  const [usage, cwd, branch] = await Promise.all([
+    $.session.usage({ breakdown: 'summary' }),
+    $.session.cwd(),
+    currentBranch($).catch(() => ''),
+  ])
+  const breakdown = usage.context.breakdown
 
   if (!breakdown) {
     return
@@ -52,16 +41,26 @@ const refresh = async ($: EngineInterface) => {
     percentage: breakdown.percentage,
     compactsAt: breakdown.isAutoCompactEnabled ? (breakdown.autoCompactThreshold ?? null) : null,
     rows,
+    model: breakdown.model,
+    project: cwd.split('/').filter(Boolean).pop() ?? cwd,
+    branch,
+    costUsd: usage.cost?.usd ?? null,
+    rateLimits: usage.rateLimits.map(w => ({ kind: w.kind, percentUsed: w.percentUsed })),
+    startedAt: usage.startedAt,
   }))
 }
 
-export const register: Register = on => {
+export const register: Register = (on, options) => {
+  const showLegend = options.showLegend !== false
+
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'context-bar',
-      description: 'Show or hide the context window bar above the prompt',
+      description: 'Show or hide the context and session bar above the prompt',
     })
     void refresh($)
+    // keeps the session time moving between turns
+    $.clock.every(TICK_MS, () => $.ui.invalidate('ui.render'))
 
     return next(e)
   })
@@ -99,45 +98,63 @@ export const register: Register = on => {
 
     const { Box, Text } = $.ui.resolve(e)
     const width = Math.max(10, e.props.bodyColumns - 4)
-    const percentColor = data.percentage >= 80 ? 'error' : data.percentage >= 50 ? 'warning' : 'success'
+    const elapsed = (await $.clock.now()) - data.startedAt
 
     return (
       <Box flexDirection="column">
-      <Box flexDirection="column" borderStyle="round" borderDimColor paddingX={1}>
-        <Box justifyContent="space-between">
-          <Text bold>
-            <Text color="claude">◆ </Text>context
-          </Text>
-          <Text>
-            <Text bold>{formatTokens(data.totalTokens)}</Text>
-            <Text dimColor>
-              {' '}of {formatTokens(data.maxTokens)}
-              {data.compactsAt !== null ? ` · compacts at ${formatTokens(data.compactsAt)}` : ''}{' '}
+        <Box flexDirection="column" borderStyle="round" borderDimColor paddingX={1}>
+          <Box justifyContent="space-between" flexWrap="wrap" columnGap={2}>
+            <Text wrap="truncate-end">
+              <Text color="claude">◆ </Text>
+              <Text bold color="suggestion">{data.model}</Text>
+              <Text dimColor> · </Text>
+              <Text>📁 {data.project}</Text>
+              {data.branch !== '' && <Text dimColor> · </Text>}
+              {data.branch !== '' && <Text color="success">🌿 {data.branch}</Text>}
             </Text>
-            <Text bold inverse color={percentColor}>
-              {` ${data.percentage}% `}
-            </Text>
-          </Text>
-        </Box>
-        <Text>
-          {barCells(data.rows, data.maxTokens, width).map(({ row, count }) => (
-            <Text color={row.color} dimColor={row.kind !== 'used'}>
-              {(row.kind === 'used' ? '█' : '░').repeat(count)}
-            </Text>
-          ))}
-        </Text>
-        <Box flexWrap="wrap" columnGap={2}>
-          {data.rows.map(row => (
             <Text>
-              <Text color={row.color}>■ </Text>
-              <Text dimColor={row.kind !== 'used'}>{row.name.toLowerCase()} </Text>
-              <Text bold>{formatTokens(row.tokens)}</Text>
-              <Text dimColor> {Math.round((row.tokens / data.maxTokens) * 100)}%</Text>
+              <Text bold>{formatTokens(data.totalTokens)}</Text>
+              <Text dimColor>
+                {' '}of {formatTokens(data.maxTokens)}
+                {data.compactsAt !== null ? ` · compacts at ${formatTokens(data.compactsAt)}` : ''}{' '}
+              </Text>
+              <Text bold inverse color={levelColor(data.percentage)}>
+                {` ${data.percentage}% `}
+              </Text>
             </Text>
-          ))}
+          </Box>
+          <Text>
+            {barCells(data.rows, data.maxTokens, width).map(({ row, count }) => (
+              <Text color={row.color} dimColor={row.kind !== 'used'}>
+                {(row.kind === 'used' ? '█' : '░').repeat(count)}
+              </Text>
+            ))}
+          </Text>
+          {showLegend && (
+            <Box flexWrap="wrap" columnGap={2}>
+              {data.rows.map(row => (
+                <Text>
+                  <Text color={row.color}>■ </Text>
+                  <Text dimColor={row.kind !== 'used'}>{row.name.toLowerCase()} </Text>
+                  <Text bold>{formatTokens(row.tokens)}</Text>
+                  <Text dimColor> {Math.round((row.tokens / data.maxTokens) * 100)}%</Text>
+                </Text>
+              ))}
+            </Box>
+          )}
+          <Text>
+            {data.costUsd !== null && <Text color="warning">💸 ${data.costUsd.toFixed(2)}</Text>}
+            {data.rateLimits.map(w => (
+              <Text>
+                <Text dimColor> · </Text>
+                <Text color={levelColor(w.percentUsed)}>{windowLabel(w)}</Text>
+              </Text>
+            ))}
+            <Text dimColor> · </Text>
+            <Text>⏱ {formatDuration(elapsed)}</Text>
+          </Text>
         </Box>
-      </Box>
-      {below}
+        {below}
       </Box>
     )
   })

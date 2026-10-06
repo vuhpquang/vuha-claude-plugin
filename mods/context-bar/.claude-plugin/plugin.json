@@ -1,7 +1,17 @@
 {
   "name": "context-bar",
-  "version": "0.1.0",
-  "description": "A band above the prompt that breaks the context window down by category, like /context",
-  "author": { "name": "vu.ha" },
-  "types": "./types/index.d.ts"
+  "version": "0.2.0",
+  "description": "A band above the prompt with model, folder, branch, cost, rate limits, session time and the context window broken down by category",
+  "author": {
+    "name": "vu.ha"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "showLegend": {
+      "type": "boolean",
+      "title": "Show the category legend",
+      "description": "The rows under the bar naming each category's tokens; off keeps the band to three lines.",
+      "default": true
+    }
+  }
 }
