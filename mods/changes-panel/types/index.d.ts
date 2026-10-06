@@ -20,6 +20,8 @@ declare module 'claude-code' {
       /** The file whose diff the pane shows; null shows the list alone. */
       selected: string | null
       diff: string[]
+      /** How the diff is drawn: one column, or old and new side by side. */
+      mode: 'unified' | 'split'
       error: string | null
     }
   }

@@ -2,7 +2,9 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { FileChange } from '../types'
-import { diffLineKind, fillTarget, mergeChanges, parseNumstat, parseStatus, STATUS_COLOR, statusLetter } from './git'
+import type { Segment, Side } from './diff'
+import { highlight, parseDiff, toSplit } from './diff'
+import { fillTarget, mergeChanges, parseNumstat, parseStatus, STATUS_COLOR, statusLetter } from './git'
 
 const PANE = 'changes-panel'
 const MAX_DIFF_LINES = 2000
@@ -13,6 +15,7 @@ const files = atom({ plugin: 'changes-panel', key: 'files' } as const, [])
 const repo = atom({ plugin: 'changes-panel', key: 'repo' } as const, null)
 const selected = atom({ plugin: 'changes-panel', key: 'selected' } as const, null)
 const diff = atom({ plugin: 'changes-panel', key: 'diff' } as const, [])
+const mode = atom({ plugin: 'changes-panel', key: 'mode' } as const, 'unified')
 const error = atom({ plugin: 'changes-panel', key: 'error' } as const, null)
 
 const git = async ($: EngineInterface, args: string[]) => $.process.run(['git', ...args], { timeoutMs: 15_000 })
@@ -130,6 +133,7 @@ export const register: Register = (on, options) => {
     const chosen = await read($, selected)
     const lines = await read($, diff)
     const problem = await read($, error)
+    const view = await read($, mode)
     const width = e.props.bodyColumns
     const added = list.reduce((sum, file) => sum + file.added, 0)
     const removed = list.reduce((sum, file) => sum + file.removed, 0)
@@ -140,6 +144,91 @@ export const register: Register = (on, options) => {
       await loadDiff($, list.find(file => file.path === next))
     }
     const submit = (text: string) => $.prompt.submit({ text, asUser: true })
+
+    const rows = parseDiff(lines)
+    const maxNo = rows.reduce(
+      (max, row) => Math.max(max, row.kind === 'hunk' ? 0 : row.kind === 'add' ? row.newNo : row.oldNo, row.kind === 'context' ? row.newNo : 0),
+      0,
+    )
+    const numWidth = Math.max(2, String(maxNo).length)
+    const num = (value: number | null) => (value === null ? ' '.repeat(numWidth) : String(value).padStart(numWidth))
+    const lineBg = (kind: Side['kind']) => (kind === 'add' ? 'diffAdded' : kind === 'remove' ? 'diffRemoved' : undefined)
+    const signOf = (kind: Side['kind']) => (kind === 'add' ? '+' : kind === 'remove' ? '-' : ' ')
+
+    const segments = (parts: Segment[], kind: Side['kind'], key: string) =>
+      parts.map((part, index) => (
+        <Text
+          key={`${key}-${index}`}
+          backgroundColor={part.changed ? (kind === 'add' ? 'diffAddedWord' : 'diffRemovedWord') : undefined}
+        >
+          {part.text}
+        </Text>
+      ))
+
+    const hunkRow = (text: string, key: string) => (
+      <Box key={key} marginTop={1}>
+        <Text color="suggestion" dimColor wrap="truncate-end">⋯ {text}</Text>
+      </Box>
+    )
+
+    const unified = () =>
+      rows.map((row, index) => {
+        const key = `u-${index}`
+        if (row.kind === 'hunk') {
+          return hunkRow(row.text, key)
+        }
+        const oldNo = row.kind === 'add' ? null : row.oldNo
+        const newNo = row.kind === 'remove' ? null : row.newNo
+        const pair = row.kind === 'context' ? undefined : row.pair
+
+        return (
+          <Box key={key} backgroundColor={lineBg(row.kind)}>
+            <Box width={numWidth * 2 + 2} flexShrink={0}>
+              <Text dimColor>{num(oldNo)} {num(newNo)}</Text>
+            </Box>
+            <Box width={2} flexShrink={0}>
+              <Text dimColor={row.kind === 'context'}>{signOf(row.kind)}</Text>
+            </Box>
+            <Box flexGrow={1} flexShrink={1}>
+              <Text wrap="wrap">{segments(highlight(row.text, pair), row.kind, key)}</Text>
+            </Box>
+          </Box>
+        )
+      })
+
+    const half = Math.max(20, Math.floor((width - 1) / 2))
+    const sideCell = (side: Side | null, key: string) => (
+      <Box key={key} width={half} flexShrink={0} backgroundColor={side === null ? undefined : lineBg(side.kind)}>
+        {side !== null && (
+          <>
+            <Box width={numWidth + 1} flexShrink={0}>
+              <Text dimColor>{num(side.no)}</Text>
+            </Box>
+            <Box width={2} flexShrink={0}>
+              <Text dimColor={side.kind === 'context'}>{signOf(side.kind)}</Text>
+            </Box>
+            <Box flexGrow={1} flexShrink={1}>
+              <Text wrap="wrap">{segments(highlight(side.text, side.pair), side.kind, key)}</Text>
+            </Box>
+          </>
+        )}
+      </Box>
+    )
+
+    const split = () =>
+      toSplit(rows).map((row, index) => {
+        const key = `s-${index}`
+        if (row.kind === 'hunk') {
+          return hunkRow(row.text, key)
+        }
+
+        return (
+          <Box key={key} gap={1}>
+            {sideCell(row.left, `${key}-l`)}
+            {sideCell(row.right, `${key}-r`)}
+          </Box>
+        )
+      })
 
     return (
       <Box flexDirection="column" width={width}>
@@ -209,26 +298,17 @@ export const register: Register = (on, options) => {
           <Box flexDirection="column" marginTop={1}>
             <Box justifyContent="space-between">
               <Text dimColor wrap="truncate-end">── {chosen}</Text>
-              <Button key="close-diff" label="✕" plain dimColor onPress={() => select(chosen)} />
+              <Box gap={2}>
+                <Button
+                  key="mode"
+                  label={view === 'unified' ? '⇆ side-by-side' : '≡ unified'}
+                  plain
+                  onPress={() => update($, mode, current => (current === 'unified' ? 'split' : 'unified'))}
+                />
+                <Button key="close-diff" label="✕" plain dimColor onPress={() => select(chosen)} />
+              </Box>
             </Box>
-            {lines.map((line, index) => {
-              const kind = diffLineKind(line)
-              const key = `diff-${index}`
-              if (kind === 'add') {
-                return <Text key={key} color="diffAdded" wrap="truncate-end">{line}</Text>
-              }
-              if (kind === 'remove') {
-                return <Text key={key} color="diffRemoved" wrap="truncate-end">{line}</Text>
-              }
-              if (kind === 'hunk') {
-                return <Text key={key} color="suggestion" wrap="truncate-end">{line}</Text>
-              }
-              if (kind === 'meta') {
-                return <Text key={key} dimColor wrap="truncate-end">{line}</Text>
-              }
-
-              return <Text key={key} wrap="truncate-end">{line || ' '}</Text>
-            })}
+            {view === 'unified' ? unified() : split()}
           </Box>
         )}
 
