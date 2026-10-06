@@ -23,6 +23,11 @@
       "description": "A pane listing your open GitLab merge requests and the ones waiting for your review"
     },
     {
+      "name": "changes-panel",
+      "source": "./mods/changes-panel",
+      "description": "A pane with the repo's uncommitted changes and their diff, plus Review and Commit + push buttons"
+    },
+    {
       "name": "jira-band",
       "source": "./mods/jira-band",
       "description": "A row above the prompt showing the Jira ticket named in the current git branch"

@@ -108,7 +108,7 @@ export const register: Register = on => {
     }
 
     return next(e)
-  })
+  }).catch(($, e, next) => next(e))
 
   on('command.run', { command: 'agents-panel' }, async $ => {
     if (await isOpen($)) {

@@ -1,0 +1,23 @@
+{
+  "name": "changes-panel",
+  "version": "0.1.0",
+  "description": "A pane with the repo's uncommitted changes and their diff, plus Review and Commit + push buttons",
+  "author": {
+    "name": "vu.ha"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "reviewPrompt": {
+      "type": "string",
+      "title": "Review prompt",
+      "description": "What the Review button asks Claude; {target} becomes 'the uncommitted changes' or the selected file.",
+      "default": "Review {target} in this repo (git diff HEAD, plus untracked files) for correctness bugs, risky behaviour changes and convention breaks. Rank findings by severity, cite file:line, and do not edit anything."
+    },
+    "commitPrompt": {
+      "type": "string",
+      "title": "Commit + push prompt",
+      "description": "What the Commit + push button asks Claude, e.g. to use your own commit skill instead.",
+      "default": "Commit and push all uncommitted changes in this repo. Write the message in the repo's commit convention (check commitlint.config.js and recent git log), put the Jira key from the branch name in it when the branch has one, stage everything relevant (never secrets or build output), run the repo's lint first when it has a fast one, then push to the branch's upstream (set it with -u if missing). Report the commit hash and the push result."
+    }
+  }
+}
