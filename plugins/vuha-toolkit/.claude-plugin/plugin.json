@@ -1,6 +1,6 @@
 {
   "name": "vuha-toolkit",
-  "version": "0.1.0",
-  "description": "Vu Ha's skills, slash commands and command hooks",
+  "version": "0.2.0",
+  "description": "Skills (standup, release-notes) and hooks (lint on edit in prod projects, macOS notification when a long turn ends)",
   "author": { "name": "vu.ha" }
 }

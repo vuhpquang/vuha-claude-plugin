@@ -1,0 +1,7 @@
+{
+  "name": "context-bar",
+  "version": "0.1.0",
+  "description": "A band above the prompt that breaks the context window down by category, like /context",
+  "author": { "name": "vu.ha" },
+  "types": "./types/index.d.ts"
+}

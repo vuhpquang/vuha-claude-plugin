@@ -1,17 +1,46 @@
 {
   "name": "vuha-claude-plugin",
-  "owner": { "name": "vu.ha" },
-  "metadata": { "description": "Vu Ha's Claude Code mods, skills, hooks and commands" },
+  "owner": {
+    "name": "vu.ha"
+  },
+  "metadata": {
+    "description": "Vu Ha's Claude Code mods, skills, hooks and commands"
+  },
   "plugins": [
+    {
+      "name": "context-bar",
+      "source": "./mods/context-bar",
+      "description": "A band above the prompt that breaks the context window down by category, like /context"
+    },
+    {
+      "name": "agents-panel",
+      "source": "./mods/agents-panel",
+      "description": "A pane listing the project's and your custom subagents, each with a run button"
+    },
+    {
+      "name": "mr-panel",
+      "source": "./mods/mr-panel",
+      "description": "A pane listing your open GitLab merge requests and the ones waiting for your review"
+    },
+    {
+      "name": "jira-band",
+      "source": "./mods/jira-band",
+      "description": "A row above the prompt showing the Jira ticket named in the current git branch"
+    },
+    {
+      "name": "cost-guard",
+      "source": "./mods/cost-guard",
+      "description": "Session cost and rate-limit usage on the status line, with a toast when a threshold is crossed"
+    },
+    {
+      "name": "turn-timer",
+      "source": "./mods/turn-timer",
+      "description": "Live turn time and tool-call count on the status line, with a toast after a long turn"
+    },
     {
       "name": "vuha-toolkit",
       "source": "./plugins/vuha-toolkit",
-      "description": "Skills, slash commands and command hooks"
-    },
-    {
-      "name": "hello-mod",
-      "source": "./mods/hello-mod",
-      "description": "Example mod: status line showing the last Bash command that failed"
+      "description": "Skills (standup, release-notes) and hooks (lint on edit in prod projects, macOS notification when a long turn ends)"
     }
   ]
 }

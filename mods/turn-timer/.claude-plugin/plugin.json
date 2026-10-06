@@ -1,0 +1,14 @@
+{
+  "name": "turn-timer",
+  "version": "0.1.0",
+  "description": "Live turn time and tool-call count on the status line, with a toast after a long turn",
+  "author": { "name": "vu.ha" },
+  "userConfig": {
+    "longTurnSeconds": {
+      "type": "number",
+      "title": "Long turn (seconds)",
+      "description": "Toast when a turn took at least this long; 0 turns the toast off.",
+      "default": 120
+    }
+  }
+}

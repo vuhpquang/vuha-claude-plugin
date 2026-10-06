@@ -1,0 +1,21 @@
+{
+  "name": "jira-band",
+  "version": "0.1.0",
+  "description": "A row above the prompt showing the Jira ticket named in the current git branch",
+  "author": { "name": "vu.ha" },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "jiraUrl": {
+      "type": "string",
+      "title": "Jira URL",
+      "description": "e.g. https://jira.example.com. Empty: the JIRA_URL environment variable. The token is read from JIRA_API_TOKEN.",
+      "default": ""
+    },
+    "jiraUser": {
+      "type": "string",
+      "title": "Jira username",
+      "description": "Set it for basic auth (username + JIRA_API_TOKEN, as Jira Cloud wants). Empty: the token is sent as a bearer personal access token (Jira Server/Data Center).",
+      "default": ""
+    }
+  }
+}

@@ -1,9 +1,24 @@
 {
   "hooks": {
-    "SessionStart": [
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/lint-on-edit.sh\"", "timeout": 60 }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": "echo 'vuha-toolkit loaded'" }
+          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/notify-on-stop.sh\" start" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/notify-on-stop.sh\" stop" }
         ]
       }
     ]

@@ -1,0 +1,21 @@
+{
+  "name": "cost-guard",
+  "version": "0.1.0",
+  "description": "Session cost and rate-limit usage on the status line, with a toast when a threshold is crossed",
+  "author": { "name": "vu.ha" },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "costWarnUsd": {
+      "type": "number",
+      "title": "Cost warning (USD)",
+      "description": "Toast once when the session's cost passes this many dollars; 0 turns it off.",
+      "default": 5
+    },
+    "rateWarnPercent": {
+      "type": "number",
+      "title": "Rate-limit warning (%)",
+      "description": "Toast once per window (5-hour, 7-day) when its usage passes this percentage; 0 turns it off.",
+      "default": 80
+    }
+  }
+}

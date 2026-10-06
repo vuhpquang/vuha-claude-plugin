@@ -1,0 +1,15 @@
+{
+  "name": "mr-panel",
+  "version": "0.1.0",
+  "description": "A pane listing your open GitLab merge requests and the ones waiting for your review",
+  "author": { "name": "vu.ha" },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "gitlabApiUrl": {
+      "type": "string",
+      "title": "GitLab API URL",
+      "description": "e.g. https://gitlab.example.com/api/v4. Empty: the GITLAB_API_URL environment variable. The token is read from GITLAB_PERSONAL_ACCESS_TOKEN or GITLAB_TOKEN.",
+      "default": ""
+    }
+  }
+}

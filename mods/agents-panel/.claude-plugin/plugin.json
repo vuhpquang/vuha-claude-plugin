@@ -1,0 +1,7 @@
+{
+  "name": "agents-panel",
+  "version": "0.1.0",
+  "description": "A pane listing the project's and your custom subagents, each with a run button",
+  "author": { "name": "vu.ha" },
+  "types": "./types/index.d.ts"
+}
