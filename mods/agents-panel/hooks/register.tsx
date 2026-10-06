@@ -2,10 +2,12 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { AgentEntry, AgentScope } from '../types'
-import { fromOffer, isGroupOpen, parseAgent, upsert } from './agents'
+import type { InstalledPlugins } from './agents'
+import { fromOffer, isGroupOpen, mergeAgents, mergeEnabled, parseAgent, pluginAgentDirs, upsert } from './agents'
 
 const PANE = 'agents-panel'
 const agents = atom({ plugin: 'agents-panel', key: 'agents' } as const, [])
+const pluginFiles = atom({ plugin: 'agents-panel', key: 'pluginFiles' } as const, [])
 const offered = atom({ plugin: 'agents-panel', key: 'offered' } as const, [])
 const toggled = atom({ plugin: 'agents-panel', key: 'toggled' } as const, [])
 
@@ -34,6 +36,38 @@ const reload = async ($: EngineInterface) => {
     SCOPES.map(({ scope, dir }) => loadDir($, dir.replace('~', home), scope).catch(() => [])),
   )
   await update($, agents, () => lists.flat().sort((a, b) => a.name.localeCompare(b.name)))
+  await reloadPlugins($, home).catch(() => undefined)
+}
+
+const readJson = async <T,>($: EngineInterface, path: string): Promise<T | null> => {
+  try {
+    return (await $.fs.exists(path)) ? (JSON.parse(await $.fs.read(path)) as T) : null
+  } catch {
+    return null
+  }
+}
+
+const reloadPlugins = async ($: EngineInterface, home: string) => {
+  const root = await $.session.root()
+  const installed = (await readJson<InstalledPlugins>($, `${home}/.claude/plugins/installed_plugins.json`)) ?? {}
+  type Settings = { enabledPlugins?: Record<string, boolean> }
+  const enabled = mergeEnabled(
+    await Promise.all(
+      [`${home}/.claude/settings.json`, `${root}/.claude/settings.json`, `${root}/.claude/settings.local.json`].map(
+        path => readJson<Settings>($, path),
+      ),
+    ),
+  )
+  const lists = await Promise.all(
+    pluginAgentDirs(installed, enabled, root).map(async ({ plugin, dir }) =>
+      (await loadDir($, dir, 'plugin').catch(() => [])).map(agent => ({
+        ...agent,
+        name: `${plugin}:${agent.name}`,
+        plugin,
+      })),
+    ),
+  )
+  await update($, pluginFiles, () => lists.flat())
 }
 
 const isOpen = async ($: EngineInterface) => (await $.ui.panes()).some(pane => pane.id === PANE)
@@ -92,7 +126,7 @@ export const register: Register = on => {
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const { Box, Button, Text } = $.ui.resolve(e)
     const files = await read($, agents)
-    const plugins = await read($, offered)
+    const plugins = mergeAgents(await read($, pluginFiles), await read($, offered))
     const flipped = await read($, toggled)
     const width = e.props.bodyColumns
 

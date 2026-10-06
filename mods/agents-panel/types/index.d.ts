@@ -15,7 +15,9 @@ declare module 'claude-code' {
     'agents-panel': {
       /** Agent files in .claude/agents and ~/.claude/agents, read when the pane opens. */
       agents: AgentEntry[]
-      /** Plugin agent types, as the engine offers them to the model. */
+      /** Agent files of enabled plugins (installed_plugins.json + enabledPlugins), read when the pane opens. */
+      pluginFiles: AgentEntry[]
+      /** Plugin agent types, as the engine offers them to the model (covers plugins loaded from a folder). */
       offered: AgentEntry[]
       /** Plugin groups the person flipped from their default open/closed state. */
       toggled: string[]
