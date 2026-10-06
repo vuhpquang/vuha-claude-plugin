@@ -15,7 +15,7 @@
     {
       "name": "agents-panel",
       "source": "./mods/agents-panel",
-      "description": "A pane listing the project's and your custom subagents, each with a run button"
+      "description": "A pane listing your project, user and plugin subagents, each with a run button"
     },
     {
       "name": "mr-panel",

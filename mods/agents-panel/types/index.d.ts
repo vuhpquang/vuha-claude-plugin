@@ -1,4 +1,4 @@
-export type AgentScope = 'project' | 'user'
+export type AgentScope = 'project' | 'user' | 'plugin'
 
 export type AgentEntry = {
   name: string
@@ -6,10 +6,19 @@ export type AgentEntry = {
   model: string | null
   color: string | null
   scope: AgentScope
+  /** The plugin that ships it, for `scope: 'plugin'`; null otherwise. */
+  plugin: string | null
 }
 
 declare module 'claude-code' {
   interface PluginState {
-    'agents-panel': { agents: AgentEntry[] }
+    'agents-panel': {
+      /** Agent files in .claude/agents and ~/.claude/agents, read when the pane opens. */
+      agents: AgentEntry[]
+      /** Plugin agent types, as the engine offers them to the model. */
+      offered: AgentEntry[]
+      /** Plugin groups the person flipped from their default open/closed state. */
+      toggled: string[]
+    }
   }
 }

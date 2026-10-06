@@ -9,7 +9,7 @@ Marketplace chứa plugin Claude Code của Vu Ha: **mods** (giao diện và hoo
 | Mod | Hiện ở đâu | Làm gì | Lệnh |
 | --- | --- | --- | --- |
 | [`context-bar`](mods/context-bar) | band trên prompt | Thay statusline: model, thư mục, branch, chi phí, rate limit 5h/7d, thời gian session, và context window chia theo loại (system prompt, tools, MCP tools, agents, memory files, skills, messages, free) có % và mốc auto-compact. Option `showLegend` ẩn dòng chú thích. | `/context-bar` bật/tắt |
-| [`agents-panel`](mods/agents-panel) | pane bên cạnh | Liệt kê subagent trong `.claude/agents` và `~/.claude/agents`, kèm model và mô tả. **▶ run** giao task hiện tại cho agent. | `/agents-panel` mở/đóng |
+| [`agents-panel`](mods/agents-panel) | pane bên cạnh | Liệt kê subagent trong `.claude/agents`, `~/.claude/agents` và của các plugin (nhóm theo plugin, nhóm trên 5 agent mặc định thu gọn, bấm ▸ để mở), kèm model và mô tả. **▶ run** giao task hiện tại cho agent. | `/agents-panel` mở/đóng |
 | [`mr-panel`](mods/mr-panel) | pane bên cạnh | MR GitLab đang mở của bạn và MR đang chờ bạn review: trạng thái (ready, conflict, ci failed, …), số comment. **▶ review** nhờ Claude review MR. Tự refresh mỗi 5 phút. | `/mr-panel` mở/đóng |
 | [`jira-band`](mods/jira-band) | band trên prompt | Lấy mã Jira từ tên branch (`feature/ABC-123-…`), hiện trạng thái, tiêu đề, assignee; bấm mã để mở ticket. | `/jira-band` bật/tắt |
 | [`cost-guard`](mods/cost-guard) | status line | `💸 $1.23 · 5h 42% · 7d 12%`: chi phí session và rate limit. Toast một lần khi vượt ngưỡng. Dùng chung với `context-bar` thì đặt `showStatus: false` để không hiện trùng. | — |
