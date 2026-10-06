@@ -40,7 +40,7 @@
     {
       "name": "vuha-toolkit",
       "source": "./plugins/vuha-toolkit",
-      "description": "Skills (standup, release-notes) and hooks (lint on edit in prod projects, macOS notification when a long turn ends)"
+      "description": "Agents (jira-ops, lib-consumer-impact, miniapp-web), skills (standup, release-notes) and hooks (lint on edit in prod projects, macOS notification when a long turn ends)"
     }
   ]
 }

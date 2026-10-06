@@ -15,10 +15,13 @@ Marketplace chứa plugin Claude Code của Vu Ha: **mods** (giao diện và hoo
 | [`cost-guard`](mods/cost-guard) | status line | `💸 $1.23 · 5h 42% · 7d 12%`: chi phí session và rate limit. Toast một lần khi vượt ngưỡng. Dùng chung với `context-bar` thì đặt `showStatus: false` để không hiện trùng. | — |
 | [`turn-timer`](mods/turn-timer) | status line | `⏱ 1m15s · 8 tools` chạy trong lúc Claude làm việc, `✓ …` khi xong. Toast khi một turn dài hơn 2 phút. | — |
 
-### `vuha-toolkit` (skills + hooks)
+### `vuha-toolkit` (agents + skills + hooks)
 
 | | Tên | Làm gì |
 | --- | --- | --- |
+| agent | `vuha-toolkit:jira-ops` | Thao tác Jira hàng loạt (chuyển, clone, sửa description/point, liệt kê) qua `fs-mobile-mcp`, trả về bảng gọn thay vì JSON. Việc cần quyết định (break sub-task, chọn story cha) thì chỉ trả nháp. |
+| agent | `vuha-toolkit:lib-consumer-impact` | Chỉ đọc: một thay đổi ở fs-kits / miniapp-platform / frontend-kits ảnh hưởng mini-app nào, dòng nào, có breaking không, cần sửa gì. |
+| agent | `vuha-toolkit:miniapp-web` | Chạy mini-app trên web bằng `@fs-frontend-kits/lending-web-mf-migration` (`yarn sim` / `npm run web` / `npx … local`), mở bằng Playwright, chụp màn hình, đọc console và API log, chẩn đoán lỗi. |
 | skill | `/standup [YYYY-MM-DD]` | Báo cáo daily từ commit (mọi repo trong `~/Work/Repos`), MR GitLab và ticket Jira của ngày làm việc trước. |
 | skill | `/release-notes [from] [to]` | Gom commit từ tag gần nhất thành release note (tính năng, sửa lỗi, breaking, nội bộ). |
 | hook | PostToolUse `Edit\|Write` | Chạy `prettier --write` và `eslint --fix` trên file vừa sửa, **chỉ trong dự án prod** (đường dẫn khớp `/Work/Repos/momo/(mini-app\|library)/`). Lỗi eslint không tự sửa được thì trả về cho Claude sửa tiếp. |
@@ -112,6 +115,7 @@ mods/<name>/                        # mod: function hooks (TS/TSX)
   tests/*.test.ts                   # chạy bằng `claude plugin test`
 plugins/vuha-toolkit/               # plugin thường
   .claude-plugin/plugin.json
+  agents/<agent>.md                 # subagents
   skills/<skill>/SKILL.md (+ scripts/)
   hooks/hooks.json                  # command hooks
   hooks/scripts/*.sh
