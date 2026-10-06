@@ -84,8 +84,12 @@ const refresh = async ($: EngineInterface) => {
 const isOpen = async ($: EngineInterface) => (await $.ui.panes()).some(pane => pane.id === PANE)
 
 export const register: Register = (on, options) => {
-  const reviewPrompt = String(options.reviewPrompt ?? '')
-  const commitPrompt = String(options.commitPrompt ?? '')
+  const reviewPrompt =
+    String(options.reviewPrompt ?? '').trim() ||
+    'Review {target} in this repo (git diff HEAD, plus untracked files) for bugs. Rank findings by severity, cite file:line, do not edit.'
+  const commitPrompt =
+    String(options.commitPrompt ?? '').trim() ||
+    "Commit and push all uncommitted changes in this repo with a message in the repo's commit convention, then push to the upstream."
 
   on('session.start', async ($, e, next) => {
     await $.command.register({
