@@ -77,11 +77,21 @@ export const register: Register = (on, options) => {
     }
     const list = await read($, steps)
     const { done, total, current, isFinished } = progress(list)
-    if (total === 0 || isFinished) {
-      return below
-    }
-
     const { Box, Text } = $.ui.resolve(e)
+
+    // No plan running: one quiet line, so it is clear the panel is there and waiting.
+    if (total === 0 || isFinished) {
+      return (
+        <Box flexDirection="column">
+          <Box paddingX={1}>
+            <Text dimColor wrap="truncate-end">
+              ◆ Steps {total === 0 ? '· no plan yet' : `· ✓ all ${total} done`} · /steps
+            </Text>
+          </Box>
+          {below}
+        </Box>
+      )
+    }
 
     return (
       <Box flexDirection="column">

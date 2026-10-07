@@ -126,11 +126,16 @@ const openPicker = async ($: EngineInterface) => {
 const isPickerOpen = async ($: EngineInterface) => (await $.ui.panes()).some(pane => pane.id === PANE)
 
 export const register: Register = on => {
+  let hasLookedOnce = false
+
+  // Read the repo first: a command that fails to register must not leave the row empty.
   on('session.start', async ($, e, next) => {
     const started = await next(e)
-    await $.command.register({ name: 'branch', description: 'Switch git branch (filter, remote branches, create new)' })
-    await $.command.register({ name: 'pull', description: 'git pull --ff-only on the current branch' })
     void refresh($).catch(() => undefined)
+    await $.command
+      .register({ name: 'branch', description: 'Switch git branch (filter, remote branches, create new)' })
+      .catch(() => undefined)
+    await $.command.register({ name: 'pull', description: 'git pull --ff-only on the current branch' }).catch(() => undefined)
 
     return started
   })
@@ -170,6 +175,11 @@ export const register: Register = on => {
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const below = await next(e)
     const state = await read($, repo)
+    if (state === null && !hasLookedOnce) {
+      // Loaded mid-session or the start read was missed: look once; the write redraws this row.
+      hasLookedOnce = true
+      void refresh($).catch(() => undefined)
+    }
     if (state === null || e.props.hasSurvey) {
       return below
     }
