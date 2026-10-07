@@ -47,12 +47,13 @@ const harness = (on: On, env: Env) => {
   return { writes, runs }
 }
 
-test('outside the wrapper it changes nothing and says how to set up', async ($, on) => {
+test('outside the wrapper it stops nothing and installs the wrapper for next time', async ($, on) => {
   const { writes, runs } = harness(on, { HOME: '/h' })
   const answer = await $.command.run({ command: 'restart' })
 
-  expect(String(answer.text)).toContain('/restart setup')
-  expect(Object.keys(writes)).toEqual([])
+  expect(String(answer.text)).toContain('Open a new terminal tab')
+  expect(writes['/h/.claude-restart/wrapper.zsh']).toBe(WRAPPER)
+  expect(Object.keys(writes).some(path => path.includes('request-'))).toBe(false)
   expect(runs).toEqual([])
 })
 

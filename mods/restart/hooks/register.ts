@@ -47,8 +47,14 @@ export const register: Register = on => {
     const token = await $.env.get('CLAUDE_RESTART_TOKEN')
     const shellPid = await $.env.get('CLAUDE_RESTART_SHELL_PID')
     if (!token || !shellPid) {
+      // Nothing could reopen this one; set up the wrapper now so the next session can restart.
+      const installed = await setup($, home)
+
       return {
-        text: 'This Claude Code was not started through the restart wrapper, so nothing could reopen it.\nRun /restart setup once, open a new terminal tab, and start Claude there.',
+        text: [
+          'This Claude Code was not started through the restart wrapper, so it cannot reopen itself.',
+          installed,
+        ].join('\n'),
       }
     }
 
