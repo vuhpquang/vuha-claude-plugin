@@ -1,0 +1,9 @@
+{
+  "name": "branch-bar",
+  "version": "0.1.0",
+  "description": "VS Code style branch row above the prompt: click the branch to switch (with filter, remote branches, create new), click sync to pull",
+  "author": {
+    "name": "vu.ha"
+  },
+  "types": "./types/index.d.ts"
+}

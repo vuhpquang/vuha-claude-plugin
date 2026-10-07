@@ -23,6 +23,11 @@
       "description": "A pane listing your open GitLab merge requests and the ones waiting for your review"
     },
     {
+      "name": "branch-bar",
+      "source": "./mods/branch-bar",
+      "description": "VS Code style branch row above the prompt: click the branch to switch (with filter, remote branches, create new), click sync to pull"
+    },
+    {
       "name": "changes-panel",
       "source": "./mods/changes-panel",
       "description": "A pane with the repo's uncommitted changes and their diff, plus Review and Commit + push buttons"
