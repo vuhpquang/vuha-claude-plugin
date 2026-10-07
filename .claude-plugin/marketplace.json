@@ -33,6 +33,11 @@
       "description": "Claude keeps its plan as steps (pending, in progress, done); a row above the prompt shows progress and a pane lists every step"
     },
     {
+      "name": "restart",
+      "source": "./mods/restart",
+      "description": "/restart quits Claude Code and reopens this same session in the same terminal, with permissions bypassed"
+    },
+    {
       "name": "jira-band",
       "source": "./mods/jira-band",
       "description": "A row above the prompt showing the Jira ticket named in the current git branch"

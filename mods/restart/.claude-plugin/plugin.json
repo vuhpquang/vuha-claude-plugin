@@ -1,0 +1,8 @@
+{
+  "name": "restart",
+  "version": "0.1.0",
+  "description": "/restart quits Claude Code and reopens this same session in the same terminal, with permissions bypassed",
+  "author": {
+    "name": "vu.ha"
+  }
+}
