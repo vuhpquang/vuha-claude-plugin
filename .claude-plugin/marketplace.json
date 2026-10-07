@@ -28,6 +28,11 @@
       "description": "A pane with the repo's uncommitted changes and their diff, plus Review and Commit + push buttons"
     },
     {
+      "name": "steps-panel",
+      "source": "./mods/steps-panel",
+      "description": "Claude keeps its plan as steps (pending, in progress, done); a row above the prompt shows progress and a pane lists every step"
+    },
+    {
       "name": "jira-band",
       "source": "./mods/jira-band",
       "description": "A row above the prompt showing the Jira ticket named in the current git branch"

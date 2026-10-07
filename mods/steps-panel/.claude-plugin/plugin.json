@@ -1,0 +1,17 @@
+{
+  "name": "steps-panel",
+  "version": "0.1.0",
+  "description": "Claude keeps its plan as steps (pending, in progress, done); a row above the prompt shows progress and a pane lists every step",
+  "author": {
+    "name": "vu.ha"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "showBand": {
+      "type": "boolean",
+      "title": "Show progress above the prompt",
+      "description": "A one-line row with the current step and how many are done, while a plan is unfinished.",
+      "default": true
+    }
+  }
+}
