@@ -136,11 +136,14 @@ export const register: Register = on => {
       .register({ name: 'branch', description: 'Switch git branch (filter, remote branches, create new)' })
       .catch(() => undefined)
     await $.command.register({ name: 'pull', description: 'git pull --ff-only on the current branch' }).catch(() => undefined)
+    await $.command
+      .register({ name: 'branch-bar', description: 'Open the branch picker (same as /branch)' })
+      .catch(() => undefined)
 
     return started
   })
 
-  on('command.run', { command: 'branch' }, async $ => {
+  on('command.run', { command: ['branch', 'branch-bar'] }, async $ => {
     if (await isPickerOpen($)) {
       await $.ui.close({ id: PANE })
 

@@ -8,18 +8,8 @@ const TICK_MS = 30 * 1000
 const snapshot = atom({ plugin: 'context-bar', key: 'snapshot' } as const, null)
 const isShown = atom({ plugin: 'context-bar', key: 'isShown' } as const, true)
 
-const currentBranch = async ($: EngineInterface) => {
-  const { exitCode, stdout } = await $.process.run(['git', 'branch', '--show-current'], { timeoutMs: 5000 })
-
-  return exitCode === 0 ? stdout.trim() : ''
-}
-
 const refresh = async ($: EngineInterface) => {
-  const [usage, cwd, branch] = await Promise.all([
-    $.session.usage({ breakdown: 'summary' }),
-    $.session.cwd(),
-    currentBranch($).catch(() => ''),
-  ])
+  const [usage, cwd] = await Promise.all([$.session.usage({ breakdown: 'summary' }), $.session.cwd()])
   const breakdown = usage.context.breakdown
 
   if (!breakdown) {
@@ -43,7 +33,6 @@ const refresh = async ($: EngineInterface) => {
     rows,
     model: breakdown.model,
     project: cwd.split('/').filter(Boolean).pop() ?? cwd,
-    branch,
     costUsd: usage.cost?.usd ?? null,
     rateLimits: usage.rateLimits.map(w => ({ kind: w.kind, percentUsed: w.percentUsed })),
     startedAt: usage.startedAt,
@@ -109,8 +98,6 @@ export const register: Register = (on, options) => {
               <Text bold color="suggestion">{data.model}</Text>
               <Text dimColor> · </Text>
               <Text>📁 {data.project}</Text>
-              {data.branch !== '' && <Text dimColor> · </Text>}
-              {data.branch !== '' && <Text color="success">🌿 {data.branch}</Text>}
             </Text>
             <Text>
               <Text bold>{formatTokens(data.totalTokens)}</Text>

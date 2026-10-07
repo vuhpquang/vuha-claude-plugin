@@ -27,6 +27,7 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     const started = await next(e)
     await $.command.register({ name: 'steps', description: "Show or hide the pane with Claude's plan and its steps" })
+    await $.command.register({ name: 'steps-panel', description: 'Show or hide the steps pane (same as /steps)' })
     await $.tool.register({ name: TOOL_NAME, description: TOOL_DESCRIPTION, inputSchema: INPUT_SCHEMA })
 
     return started
@@ -59,7 +60,7 @@ export const register: Register = (on, options) => {
     return { result: { ok: true, done, total }, text: summary(plan.steps) }
   }).catch(() => ({ deny: 'The steps panel could not store the plan; carry on without it.' }))
 
-  on('command.run', { command: 'steps' }, async $ => {
+  on('command.run', { command: ['steps', 'steps-panel'] }, async $ => {
     if (await isOpen($)) {
       await $.ui.close({ id: PANE })
 

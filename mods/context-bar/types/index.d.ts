@@ -15,7 +15,6 @@ export type ContextSnapshot = {
   rows: ContextRow[]
   model: string
   project: string
-  branch: string
   costUsd: number | null
   rateLimits: RateWindow[]
   startedAt: number
