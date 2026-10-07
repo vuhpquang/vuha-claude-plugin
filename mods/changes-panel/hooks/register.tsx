@@ -9,6 +9,7 @@ import { fillTarget, mergeChanges, parseNumstat, parseStatus, STATUS_COLOR, stat
 const PANE = 'changes-panel'
 const MAX_DIFF_LINES = 2000
 const MAX_COUNTED_UNTRACKED = 50
+// Tools after which the file list may have changed; the pane refreshes when one finishes.
 const EDITING_TOOLS = new Set(['Edit', 'Write', 'NotebookEdit', 'Bash'])
 
 const files = atom({ plugin: 'changes-panel', key: 'files' } as const, [])
@@ -18,7 +19,8 @@ const diff = atom({ plugin: 'changes-panel', key: 'diff' } as const, [])
 const mode = atom({ plugin: 'changes-panel', key: 'mode' } as const, 'unified')
 const error = atom({ plugin: 'changes-panel', key: 'error' } as const, null)
 
-const git = async ($: EngineInterface, args: string[]) => $.process.run(['git', ...args], { timeoutMs: 15_000 })
+const git = async ($: EngineInterface, args: string[], cwd?: string) =>
+  $.process.run(['git', ...args], { timeoutMs: 15_000, ...(cwd === undefined ? {} : { cwd }) })
 
 const countLines = async ($: EngineInterface, path: string) => {
   try {
@@ -31,23 +33,24 @@ const countLines = async ($: EngineInterface, path: string) => {
 }
 
 const loadDiff = async ($: EngineInterface, file: FileChange | undefined) => {
-  if (file === undefined) {
+  const root = (await read($, repo))?.root
+  if (file === undefined || root === undefined) {
     await update($, diff, () => [])
 
     return
   }
   const run =
     file.status === '??'
-      ? await git($, ['diff', '--no-index', '--no-color', '--', '/dev/null', file.path])
-      : await git($, ['diff', '--no-color', 'HEAD', '--', file.path])
+      ? await git($, ['diff', '--no-index', '--no-color', '--', '/dev/null', file.path], root)
+      : await git($, ['diff', '--no-color', 'HEAD', '--', file.path], root)
   const lines = run.stdout.split('\n')
   const shown = lines.length > MAX_DIFF_LINES ? [...lines.slice(0, MAX_DIFF_LINES), `… ${lines.length - MAX_DIFF_LINES} more lines`] : lines
   await update($, diff, () => shown)
 }
 
 const refresh = async ($: EngineInterface) => {
-  const inside = await git($, ['rev-parse', '--is-inside-work-tree']).catch(() => null)
-  if (inside === null || inside.exitCode !== 0) {
+  const top = await git($, ['rev-parse', '--show-toplevel']).catch(() => null)
+  if (top === null || top.exitCode !== 0) {
     await update($, error, () => 'Not a git repository.')
     await update($, files, () => [])
     await update($, repo, () => null)
@@ -55,23 +58,25 @@ const refresh = async ($: EngineInterface) => {
     return
   }
 
+  const root = top.stdout.trim()
   const [branch, ahead, status, numstat] = await Promise.all([
-    git($, ['rev-parse', '--abbrev-ref', 'HEAD']),
-    git($, ['rev-list', '--count', '@{u}..HEAD']),
-    git($, ['status', '--porcelain=v1', '-z', '-uall']),
-    git($, ['diff', '--numstat', '-z', 'HEAD']),
+    git($, ['rev-parse', '--abbrev-ref', 'HEAD'], root),
+    git($, ['rev-list', '--count', '@{u}..HEAD'], root),
+    git($, ['status', '--porcelain=v1', '-z', '-uall'], root),
+    git($, ['diff', '--numstat', '-z', 'HEAD'], root),
   ])
 
   const entries = parseStatus(status.stdout)
   const untracked = entries.filter(entry => entry.status === '??').slice(0, MAX_COUNTED_UNTRACKED)
   const untrackedLines = new Map(
-    await Promise.all(untracked.map(async entry => [entry.path, await countLines($, entry.path)] as const)),
+    await Promise.all(untracked.map(async entry => [entry.path, await countLines($, `${root}/${entry.path}`)] as const)),
   )
   const list = mergeChanges(entries, parseNumstat(numstat.stdout), untrackedLines)
 
   await update($, error, () => null)
   await update($, files, () => list)
   await update($, repo, () => ({
+    root,
     branch: branch.stdout.trim() || '(no branch)',
     ahead: ahead.exitCode === 0 ? Number(ahead.stdout.trim()) || 0 : null,
   }))
@@ -308,12 +313,18 @@ export const register: Register = (on, options) => {
                 <Button key="close-diff" label="✕" plain dimColor onPress={() => select(chosen)} />
               </Box>
             </Box>
-            {view === 'unified' ? unified() : split()}
+            {rows.length === 0 ? (
+              <Text dimColor>No text diff for this file (binary, mode change only, or nothing left to show).</Text>
+            ) : view === 'unified' ? (
+              unified()
+            ) : (
+              split()
+            )}
           </Box>
         )}
 
         <Box marginTop={1}>
-          <Text dimColor>▸ a file to see its diff · /changes-panel to hide</Text>
+          <Text dimColor>▸ a file to see its diff · ⇆ to switch views · /changes-panel to hide</Text>
         </Box>
       </Box>
     )

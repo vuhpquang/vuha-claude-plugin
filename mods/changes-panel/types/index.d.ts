@@ -7,6 +7,8 @@ export type FileChange = {
 }
 
 export type RepoInfo = {
+  /** The work tree's top folder: git's paths are relative to it, so every command runs there. */
+  root: string
   branch: string
   /** Commits on HEAD the upstream does not have; null without an upstream. */
   ahead: number | null

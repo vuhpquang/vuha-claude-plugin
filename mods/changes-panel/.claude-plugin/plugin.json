@@ -1,6 +1,6 @@
 {
   "name": "changes-panel",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A pane with the repo's uncommitted changes and their diff, plus Review and Commit + push buttons",
   "author": {
     "name": "vu.ha"

@@ -9,21 +9,21 @@ const PANE = {
 
 const ok = (stdout: string) => ({ exitCode: 0, stdout, stderr: '', isStdoutTruncated: false, isStderrTruncated: false })
 
-// Stands in for git: the answers a repo with one modified README.md gives.
-const fakeGit = (argv: readonly string[]) => {
+// Stands in for git run from a subfolder of /repo: like git, a pathspec only matches from the top.
+const fakeGit = (argv: readonly string[], cwd: string | undefined) => {
   const args = argv.slice(1).join(' ')
-  if (args.startsWith('rev-parse --is-inside-work-tree')) return ok('true\n')
+  if (args.startsWith('rev-parse --show-toplevel')) return ok('/repo\n')
   if (args.startsWith('rev-parse --abbrev-ref')) return ok('main\n')
   if (args.startsWith('rev-list')) return ok('1\n')
   if (args.startsWith('status')) return ok(' M README.md\0')
   if (args.startsWith('diff --numstat')) return ok('1\t1\tREADME.md\0')
-  if (args.startsWith('diff --no-color HEAD -- README.md')) return ok(DIFF.join('\n'))
+  if (args.startsWith('diff --no-color HEAD -- README.md')) return ok(cwd === '/repo' ? DIFF.join('\n') : '')
 
   return ok('')
 }
 
 test('lists the change, opens its diff and switches to side by side', async ($, on) => {
-  on('process.run', async (_$, e) => ({ value: fakeGit(e.argv) }))
+  on('process.run', async (_$, e) => ({ value: fakeGit(e.argv, e.init?.cwd) }))
   on('ui.panes', async () => ({ value: [] }))
   on('ui.open', async () => ({ value: { isPlaced: true as const } }))
 
