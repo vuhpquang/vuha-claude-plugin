@@ -28,7 +28,7 @@ Marketplace chứa plugin Claude Code của Vu Ha: **mods** (giao diện và hoo
 | agent | `vuha-toolkit:miniapp-web` | Chạy mini-app trên web bằng `@fs-frontend-kits/lending-web-mf-migration` (`yarn sim` / `npm run web` / `npx … local`), mở bằng Playwright, chụp màn hình, đọc console và API log, chẩn đoán lỗi. |
 | skill | `/standup [YYYY-MM-DD]` | Báo cáo daily từ commit (mọi repo trong `~/Work/Repos`), MR GitLab và ticket Jira của ngày làm việc trước. |
 | skill | `/release-notes [from] [to]` | Gom commit từ tag gần nhất thành release note (tính năng, sửa lỗi, breaking, nội bộ). |
-| skill | `/soulseek <bài / album>` | Tìm nhạc trên Soulseek qua MCP `soulseek` (slskd), chọn bản đúng version và chất lượng thật (lossless thật > MP3 320 > YouTube rip đội lốt FLAC, peer còn slot trống), tải về, chờ xong rồi đưa link bấm được mở thư mục trong Finder. Cần slskd chạy local và MCP `soulseek`. |
+| skill | `/download-music <bài / album / link>` | Hỏi nguồn **YouTube** hay **Soulseek**. YouTube: hỏi link nếu chưa có, tải audio m4a bằng `yt-dlp` vào `~/Music/YouTube`. Soulseek: tìm qua MCP `soulseek` (slskd), chọn đúng version và chất lượng thật (lossless thật > MP3 320 > YouTube rip đội lốt FLAC, peer còn slot trống), tải và chờ xong. Xong thì đưa link bấm được mở thư mục trong Finder. |
 | hook | PostToolUse `Edit\|Write` | Chạy `prettier --write` và `eslint --fix` trên file vừa sửa, **chỉ trong dự án prod** (đường dẫn khớp `/Work/Repos/momo/(mini-app\|library)/`). Lỗi eslint không tự sửa được thì trả về cho Claude sửa tiếp. |
 | hook | UserPromptSubmit + Stop | Gửi thông báo macOS (có âm thanh) khi Claude làm xong một turn dài từ 30 giây trở lên. |
 
