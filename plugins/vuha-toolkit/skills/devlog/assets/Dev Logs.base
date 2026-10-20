@@ -1,0 +1,46 @@
+filters:
+  and:
+    - file.inFolder("Dev Logs")
+    - file.hasTag("devlog")
+formulas:
+  day: date(date).format("ddd DD/MM")
+properties:
+  file.name:
+    displayName: Ngày
+  formula.day:
+    displayName: Thứ
+  summary:
+    displayName: Tóm tắt
+  projects:
+    displayName: Projects
+  tickets:
+    displayName: Tickets
+  commits:
+    displayName: Commits
+views:
+  - type: table
+    name: Tất cả
+    order:
+      - file.name
+      - formula.day
+      - summary
+      - projects
+      - tickets
+      - commits
+    sort:
+      - property: date
+        direction: DESC
+  - type: table
+    name: Tuần này
+    filters:
+      and:
+        - date >= today() - "7d"
+    order:
+      - file.name
+      - formula.day
+      - summary
+      - projects
+      - commits
+    sort:
+      - property: date
+        direction: DESC

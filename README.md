@@ -29,6 +29,7 @@ Marketplace chứa plugin Claude Code của Vu Ha: **mods** (giao diện và hoo
 | skill | `/standup [YYYY-MM-DD]` | Báo cáo daily từ commit (mọi repo trong `~/Work/Repos`), MR GitLab và ticket Jira của ngày làm việc trước. |
 | skill | `/release-notes [from] [to]` | Gom commit từ tag gần nhất thành release note (tính năng, sửa lỗi, breaking, nội bộ). |
 | skill | `/download-music <bài / album / link>` | Hỏi nguồn **YouTube** hay **Soulseek**. YouTube: hỏi link nếu chưa có, tải audio m4a bằng `yt-dlp` vào `~/Music/YouTube`. Soulseek: tìm qua MCP `soulseek` (slskd), chọn đúng version và chất lượng thật (lossless thật > MP3 320 > YouTube rip đội lốt FLAC, peer còn slot trống), tải và chờ xong. Xong thì đưa link bấm được mở thư mục trong Finder. |
+| skill | `/devlog [YYYY-MM-DD \| install \| uninstall]` | Viết dev log trong ngày vào Obsidian (`Dev Logs/<năm>/<tháng>/<ngày>.md`) từ commit và các phiên Claude Code: tóm tắt, điểm nhấn, theo project (commit gấp gọn trong callout), review/điều tra, việc còn dở. Kèm `Dev Logs.base` để xem dạng bảng. `install` cài launchd `com.vuha.devlog` chạy mỗi ngày lúc 17:30 (log: `~/Library/Logs/vuha-devlog.log`). |
 | hook | PostToolUse `Edit\|Write` | Chạy `prettier --write` và `eslint --fix` trên file vừa sửa, **chỉ trong dự án prod** (đường dẫn khớp `/Work/Repos/momo/(mini-app\|library)/`). Lỗi eslint không tự sửa được thì trả về cho Claude sửa tiếp. |
 | hook | UserPromptSubmit + Stop | Gửi thông báo macOS (có âm thanh) khi Claude làm xong một turn dài từ 30 giây trở lên. |
 
@@ -101,6 +102,9 @@ GitLab/Jira nội bộ cần VPN. Khi không kết nối được, pane hoặc b
 | `VUHA_NOTIFY_MIN_SECONDS` | `30` | turn ngắn hơn số giây này thì không thông báo |
 | `VUHA_STANDUP_ROOTS` | `~/Work/Repos` | các thư mục (ngăn cách bằng `:`) tìm git repo cho `/standup` |
 | `VUHA_STANDUP_AUTHORS` | email trong git config | thêm pattern author, ngăn cách bằng `\|` |
+| `VUHA_DEVLOG_DIR` | `~/Library/CloudStorage/OneDrive-Personal/obsidian-notes/Dev Logs` | thư mục Obsidian chứa dev log |
+| `VUHA_DEVLOG_TIME` | `17:30` | giờ chạy hằng ngày, đọc lúc `/devlog install` |
+| `VUHA_DEVLOG_CLAUDE_CONFIG` | `~/.claude-work` | config dir Claude dùng khi chạy theo lịch |
 
 Hook lint dùng `prettier` và `eslint` cài trong `node_modules/.bin` của dự án (thư mục gần nhất tính từ file), không cài gì thêm.
 
