@@ -10,7 +10,7 @@ properties:
   formula.day:
     displayName: Thứ
   summary:
-    displayName: Tóm tắt
+    displayName: Summary
   projects:
     displayName: Projects
   tickets:

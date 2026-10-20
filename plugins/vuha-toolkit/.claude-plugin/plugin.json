@@ -1,6 +1,6 @@
 {
   "name": "vuha-toolkit",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Agents (jira-ops, lib-consumer-impact, miniapp-web), skills (standup, release-notes, download-music, devlog) and hooks (lint on edit in prod projects, macOS notification when a long turn ends)",
   "author": {
     "name": "vu.ha"

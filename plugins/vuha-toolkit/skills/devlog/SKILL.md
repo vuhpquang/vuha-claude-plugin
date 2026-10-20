@@ -43,15 +43,20 @@ tags: [devlog]
 projects: [fs-kits, mini-app-vaynhanh]
 tickets: [FM-7645, FM-7684]
 commits: 42
-summary: "Một câu: việc chính của ngày"
+summary:
+  - "Ví trả sau chuyển sang FSDivkitBaseScreen"
+  - "Sửa pipeline fsuiauto"
+  - "Review MR !278 miniapp-platform"
 ---
 
 # 🗓️ Thứ Ba, 20/10/2026
 
 ← [[2026-10-19]] · [[2026-10-21]] →
 
-> [!summary] Tóm tắt
-> 2–3 câu: ngày hôm nay xoay quanh việc gì, kết quả chính.
+## 📌 Summary
+- Ví trả sau chuyển sang FSDivkitBaseScreen
+- Sửa pipeline fsuiauto
+- Review MR !278 miniapp-platform
 
 ## 🎯 Điểm nhấn
 - 3–5 kết quả quan trọng nhất, viết theo kết quả ("Ví trả sau dùng FSDivkitBaseScreen cho 3 màn DUX"), không theo commit.
@@ -78,6 +83,7 @@ summary: "Một câu: việc chính của ngày"
 ```
 
 Rules:
+- `## 📌 Summary` is the first section: 4–8 bullets covering everything done that day, one line each (≤ 10 words), verb first, plain words a non-dev could follow; ticket key only when it helps. The frontmatter `summary` list holds exactly the same bullets, so the `Dev Logs.base` table shows them too.
 - Never invent work; everything comes from the gathered data. Guesses about "ngày mai" are marked `(?)`.
 - Group by outcome, not by commit; drop noise (`chore: update`, version bumps go in one line, merge commits).
 - Commits sit in a folded callout (`> [!info]-`) per project so the note stays short; short hashes, time at the end.
@@ -87,4 +93,4 @@ Rules:
 
 ## 3. Report
 
-Print the note's path and the `summary` line. Nothing else.
+Print the note's path and the Summary bullets. Nothing else.
