@@ -1,35 +1,23 @@
 #!/bin/zsh
-# Installs (or removes) the launchd job com.vuha.devlog that writes the dev log every day at 17:30.
+# Installs (or removes) the launchd job com.vuha.devlog: runs run.sh at 09:00 and 17:30 at background priority.
+# The scripts are copied to ~/.local/share/vuha-devlog so plugin updates do not break the job; install again after one.
 # Usage: schedule.sh install|uninstall
-# Env:   VUHA_DEVLOG_TIME  HH:MM (default 17:30)   VUHA_DEVLOG_CLAUDE_CONFIG  config dir to run with (default ~/.claude-work)
 set -eu
 label=com.vuha.devlog
 plist=~/Library/LaunchAgents/$label.plist
-runner=~/.local/bin/vuha-devlog
+home=~/.local/share/vuha-devlog
 log=~/Library/Logs/vuha-devlog.log
 
+launchctl bootout gui/$(id -u)/$label 2>/dev/null || true
+rm -f ~/.local/bin/vuha-devlog  # runner from the first version
 if [[ "${1:-}" == uninstall ]]; then
-  launchctl bootout gui/$(id -u)/$label 2>/dev/null || true
-  rm -f "$plist" "$runner"
+  rm -rf "$plist" "$home"
   echo "removed $label"; exit 0
 fi
 [[ "${1:-}" == install ]] || { echo "usage: $0 install|uninstall"; exit 2; }
 
-time=${VUHA_DEVLOG_TIME:-17:30}
-config=${VUHA_DEVLOG_CLAUDE_CONFIG:-$HOME/.claude-work}
-mkdir -p ~/.local/bin ~/Library/LaunchAgents
-
-cat > "$runner" <<RUN
-#!/bin/zsh
-# Daily dev log (launchd: $label). Runs Claude Code headless with the vuha-toolkit devlog skill.
-echo "== \$(date '+%F %T')"
-cd ~ || exit 1
-CLAUDE_CONFIG_DIR=$config $(command -v claude || echo ~/.local/bin/claude) -p \\
-  "Dùng skill vuha-toolkit:devlog để viết dev log cho hôm nay (\$(date +%F)). Chạy không cần hỏi lại." \\
-  --dangerously-skip-permissions
-echo "exit \$?"
-RUN
-chmod +x "$runner"
+mkdir -p $home ~/Library/LaunchAgents
+cp ${0:A:h}/run.sh ${0:A:h}/collect-commits.py ${0:A:h}/collect-sessions.py $home/
 
 cat > "$plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -41,7 +29,7 @@ cat > "$plist" <<PLIST
   <key>ProgramArguments</key>
   <array>
     <string>/bin/zsh</string>
-    <string>$runner</string>
+    <string>$home/run.sh</string>
   </array>
   <key>EnvironmentVariables</key>
   <dict>
@@ -49,12 +37,16 @@ cat > "$plist" <<PLIST
     <string>$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
   </dict>
   <key>StartCalendarInterval</key>
-  <dict>
-    <key>Hour</key>
-    <integer>$((10#${time%%:*}))</integer>
-    <key>Minute</key>
-    <integer>$((10#${time##*:}))</integer>
-  </dict>
+  <array>
+    <dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>0</integer></dict>
+    <dict><key>Hour</key><integer>17</integer><key>Minute</key><integer>30</integer></dict>
+  </array>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>LowPriorityIO</key>
+  <true/>
+  <key>Nice</key>
+  <integer>10</integer>
   <key>StandardOutPath</key>
   <string>$log</string>
   <key>StandardErrorPath</key>
@@ -63,6 +55,5 @@ cat > "$plist" <<PLIST
 </plist>
 PLIST
 
-launchctl bootout gui/$(id -u)/$label 2>/dev/null || true
 launchctl bootstrap gui/$(id -u) "$plist"
-echo "installed $label: every day at $time → $runner (log: $log)"
+echo "installed $label: 09:00 + 17:30 → $home/run.sh (log: $log)"

@@ -1,6 +1,6 @@
 ---
 name: devlog
-description: Write today's dev log into the Obsidian vault (Dev Logs folder) from the day's commits and Claude Code sessions. Use when the user asks for a devlog, "viết devlog", "nhật ký dev", "hôm nay làm gì", or /devlog. Also run every day at 17:30 by the launchd job com.vuha.devlog.
+description: Write today's dev log into the Obsidian vault (Dev Logs folder) from the day's commits and Claude Code sessions. Use when the user asks for a devlog, "viết devlog", "nhật ký dev", "hôm nay làm gì", or /devlog. Also run by the launchd job com.vuha.devlog (09:00 and 17:30) for each day that changed.
 argument-hint: "[YYYY-MM-DD] | install | uninstall"
 ---
 
@@ -16,11 +16,11 @@ When the argument is `install` or `uninstall`, run `"${CLAUDE_PLUGIN_ROOT}/skill
 ## 1. Gather (run in parallel)
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/skills/devlog/scripts/collect-commits.sh" <day>
+python3 -I "${CLAUDE_PLUGIN_ROOT}/skills/devlog/scripts/collect-commits.py" <day>
 python3 -I "${CLAUDE_PLUGIN_ROOT}/skills/devlog/scripts/collect-sessions.py" <day>
 ```
 
-- Commits: every repo under `~/Work/Repos`, deduplicated across worktrees.
+- Commits: every repo under `~/Work/Repos` that moved since that day, each commit once, on the day it was written (author date), so a rebase the next day does not list it again.
 - Sessions: what the user asked Claude Code that day (all config dirs), per project, plus each session's last answer. This is the main source for work that left no commit (reviews, investigations, pipelines, setup).
 
 Optional, skip silently when not available: Jira tickets updated that day (a `search_jira_issues`-style MCP tool, JQL `assignee = currentUser() AND updated >= "<day>"`) to get ticket titles and status.

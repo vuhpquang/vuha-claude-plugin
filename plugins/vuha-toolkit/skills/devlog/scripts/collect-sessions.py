@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Prints what you asked Claude Code on one day, grouped by project, with each session's last answer.
-Usage: collect-sessions.py [YYYY-MM-DD]   (default: today)
+Usage: collect-sessions.py [YYYY-MM-DD]       (default: today)
+       collect-sessions.py --sig YYYY-MM-DD   one line per day since then: "<day> <prompts> <fingerprint>"
 Env:   VUHA_DEVLOG_CLAUDE_DIRS  colon-separated Claude config dirs (default ~/.claude:~/.claude-work:~/.claude-personal)
 """
-import json, os, sys, glob
+import hashlib, json, os, sys, glob
 from datetime import datetime, date
 
-day = date.fromisoformat(sys.argv[1]) if len(sys.argv) > 1 else date.today()
+sig_mode = len(sys.argv) > 2 and sys.argv[1] == "--sig"
+day = date.fromisoformat(sys.argv[2] if sig_mode else sys.argv[1]) if len(sys.argv) > 1 else date.today()
 start = datetime.combine(day, datetime.min.time()).timestamp()
 dirs = os.environ.get("VUHA_DEVLOG_CLAUDE_DIRS", "~/.claude:~/.claude-work:~/.claude-personal").split(":")
 
@@ -32,6 +34,7 @@ def clip(s, n):
 
 
 projects = {}  # cwd -> list of (time, session, prompt)
+by_day = {}    # --sig: day -> prompts
 answers = {}   # session -> last assistant text
 seen = set()
 for d in dirs:
@@ -45,7 +48,8 @@ for d in dirs:
                     rec = json.loads(line)
                 except ValueError:
                     continue
-                if rec.get("isSidechain") or rec.get("isMeta") or local_day(rec.get("timestamp")) != day:
+                rec_day = local_day(rec.get("timestamp"))
+                if rec.get("isSidechain") or rec.get("isMeta") or not rec_day or rec_day < day or (not sig_mode and rec_day != day):
                     continue
                 text = text_of((rec.get("message") or {}).get("content")).strip()
                 if not text:
@@ -64,8 +68,16 @@ for d in dirs:
                     if key in seen:
                         continue
                     seen.add(key)
+                    if sig_mode:
+                        by_day.setdefault(rec_day.isoformat(), []).append(session + text[:200])
+                        continue
                     t = datetime.fromisoformat(rec["timestamp"].replace("Z", "+00:00")).astimezone()
                     projects.setdefault(rec.get("cwd") or "?", []).append((t.strftime("%H:%M"), session, text))
+
+if sig_mode:
+    for d in sorted(by_day):
+        print(d, len(by_day[d]), hashlib.sha1("\n".join(sorted(by_day[d])).encode()).hexdigest()[:12])
+    sys.exit()
 
 print(f"# Claude Code sessions on {day}")
 if not projects:
