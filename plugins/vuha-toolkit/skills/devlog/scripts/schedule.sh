@@ -1,5 +1,6 @@
 #!/bin/zsh
-# Installs (or removes) the launchd job com.vuha.devlog: runs run.sh at 09:00 and 17:30 at background priority.
+# Installs (or removes) the launchd job com.vuha.devlog: runs run.sh at 09:00 and 17:30 at nice 10.
+# Not ProcessType Background / LowPriorityIO: macOS throttles those so hard that a 10 s repo scan takes 13 min.
 # The scripts are copied to ~/.local/share/vuha-devlog so plugin updates do not break the job; install again after one.
 # Usage: schedule.sh install|uninstall
 set -eu
@@ -41,10 +42,6 @@ cat > "$plist" <<PLIST
     <dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>0</integer></dict>
     <dict><key>Hour</key><integer>17</integer><key>Minute</key><integer>30</integer></dict>
   </array>
-  <key>ProcessType</key>
-  <string>Background</string>
-  <key>LowPriorityIO</key>
-  <true/>
   <key>Nice</key>
   <integer>10</integer>
   <key>StandardOutPath</key>
