@@ -58,6 +58,11 @@
       "description": "Live turn time and tool-call count on the status line, with a toast after a long turn"
     },
     {
+      "name": "image-peek",
+      "source": "./mods/image-peek",
+      "description": "Thumbnails of images pasted into the prompt, above the prompt and under each sent message; click one to see it large in a side pane"
+    },
+    {
       "name": "vuha-toolkit",
       "source": "./plugins/vuha-toolkit",
       "description": "Agents (jira-ops, lib-consumer-impact, miniapp-web), skills (standup, release-notes, download-music, devlog) and hooks (lint on edit in prod projects, macOS notification when a long turn ends)"

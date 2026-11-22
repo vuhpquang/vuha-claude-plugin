@@ -18,6 +18,7 @@ Marketplace chứa plugin Claude Code của Vu Ha: **mods** (giao diện và hoo
 | [`jira-band`](mods/jira-band) | band trên prompt | Lấy mã Jira từ tên branch (`feature/ABC-123-…`), hiện trạng thái, tiêu đề, assignee; bấm mã để mở ticket. | `/jira-band` bật/tắt |
 | [`cost-guard`](mods/cost-guard) | status line | `💸 $1.23 · 5h 42% · 7d 12%`: chi phí session và rate limit. Toast một lần khi vượt ngưỡng. Dùng chung với `context-bar` thì đặt `showStatus: false` để không hiện trùng. | — |
 | [`turn-timer`](mods/turn-timer) | status line | `⏱ 1m15s · 8 tools` chạy trong lúc Claude làm việc, `✓ …` khi xong. Toast khi một turn dài hơn 2 phút. | — |
+| [`image-peek`](mods/image-peek) | band + pane | Ảnh paste vào ô nhập (`[Image #N]`) hiện thumbnail ngay phía trên prompt khi đang soạn, và dưới mỗi tin nhắn đã gửi. Bấm `⤢ #N` mở ảnh lớn ở pane bên phải (`h`/`l` ảnh trước/sau, `q` đóng). Nút **Hide/Show** thu gọn thumbnail. Cần terminal vẽ được ảnh (Ghostty, kitty, iTerm2 3.5+); chỉ đọc PNG. | `/image-peek` ẩn/hiện · `/image-peek open` |
 
 ### `vuha-toolkit` (agents + skills + hooks)
 
@@ -48,6 +49,7 @@ Gõ trong prompt của Claude Code (terminal). Cài cái nào thì gõ dòng đ�
 /plugin install jira-band --marketplace vuhpquang/vuha-claude-plugin
 /plugin install cost-guard --marketplace vuhpquang/vuha-claude-plugin
 /plugin install turn-timer --marketplace vuhpquang/vuha-claude-plugin
+/plugin install image-peek --marketplace vuhpquang/vuha-claude-plugin
 /plugin install vuha-toolkit --marketplace vuhpquang/vuha-claude-plugin
 ```
 
