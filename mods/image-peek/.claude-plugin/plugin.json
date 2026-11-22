@@ -1,6 +1,6 @@
 {
   "name": "image-peek",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Thumbnails of images pasted into the prompt, above the prompt and under each sent message; click one to see it large in a side pane",
   "author": { "name": "vu.ha" },
   "types": "./types/index.d.ts"

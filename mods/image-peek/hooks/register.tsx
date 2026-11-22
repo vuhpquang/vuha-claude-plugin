@@ -61,23 +61,42 @@ let imagesDir: string | null | undefined
 const sizes = new Map<string, Size | null>()
 
 /** This session's images folder, found once by its session id. */
+/** The current user's id, so only their own claude-<uid> folder is read. */
+const userId = async ($: EngineInterface) => {
+  const run = await $.process.run(['id', '-u']).catch(() => undefined)
+  const uid = run?.exitCode === 0 ? run.stdout.trim() : ''
+  return /^\d+$/.test(uid) ? uid : null
+}
+
+/**
+ * This session's images folder, found once by its session id: only under
+ * <tmp>/claude-<own uid>, never through a symbolic link, and only where its
+ * real path stays inside that folder.
+ */
 const findDir = async ($: EngineInterface) => {
   if (imagesDir) return imagesDir
+  const uid = await userId($)
+  if (!uid) return null
   const sessionId = await $.session.id()
   const tmpdir = (await $.env.get('TMPDIR'))?.replace(/\/$/, '')
-  const roots = ['/private/tmp', '/tmp', ...(tmpdir ? [tmpdir] : [])]
+  const roots = [...(tmpdir ? [tmpdir] : []), '/tmp', '/private/tmp']
   for (const root of roots) {
-    const entries = await $.fs.list(root).catch(() => [])
-    for (const entry of entries) {
-      if (!entry.name.startsWith('claude-')) continue
-      const base = `${root}/${entry.name}`
-      const projects = await $.fs.list(base).catch(() => [])
-      for (const project of projects) {
-        const dir = `${base}/${project.name}/${sessionId}/images`
-        if (await $.fs.exists(dir)) {
-          imagesDir = dir
-          return dir
-        }
+    const base = `${root}/claude-${uid}`
+    const baseStat = await $.fs.stat(base, { resolve: true }).catch(() => undefined)
+    if (!baseStat || baseStat.kind !== 'dir' || baseStat.isLink || !baseStat.realPath) continue
+    const baseReal = baseStat.realPath.replace(/\/$/, '')
+    const projects = await $.fs.list(base).catch(() => [])
+    for (const project of projects) {
+      if (project.isLink || project.kind !== 'dir') continue
+      const dir = `${base}/${project.name}/${sessionId}/images`
+      const dirStat = await $.fs.stat(dir, { resolve: true }).catch(() => undefined)
+      const isSafe =
+        dirStat?.kind === 'dir' &&
+        !dirStat.isLink &&
+        dirStat.realPath?.startsWith(`${baseReal}/`) === true
+      if (isSafe) {
+        imagesDir = dir
+        return dir
       }
     }
   }
